@@ -45,3 +45,11 @@ def test_erro_remover_inexistente():
         assert False
     except KeyError:
         assert True
+        
+def test_listar_chaves():
+    ht = HashTable()
+    ht.inserir("celular", {})
+    ht.inserir("notebook", {})
+    chaves = ht.listar_chaves()
+    assert "celular" in chaves
+    assert "notebook" in chaves

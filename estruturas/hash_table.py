@@ -40,3 +40,10 @@ class HashTable:
 
     def tamanho(self) -> int:
         return sum(len(bucket) for bucket in self._tabela)
+    
+    def listar_chaves(self) -> list:
+        chaves = []
+        for bucket in self._tabela:
+         for k, v in bucket:
+            chaves.append(k)
+        return chaves
