@@ -45,18 +45,36 @@ class ArvoreCategorias:
             no = no.filhos[categoria]
         no.produtos.append(produto)
 
-    def buscar_categoria(self, caminho):
+    def buscar_categoria(self, caminho, filtros=None):
         no = self.raiz
         for categoria in caminho:
             if categoria not in no.filhos:
                 return []
             no = no.filhos[categoria]
-        return self._coletar(no)
+        produtos = self._coletar(no)
+        if filtros:
+            produtos = self._refinar(produtos, filtros)
+        return produtos
+
+    def _refinar(self, produtos, filtros):
+        resultado = []
+        for produto in produtos:
+            if all(produto.get(chave) == valor for chave, valor in filtros.items()):
+                resultado.append(produto)
+        return resultado
 
     def listar_categorias(self):
         resultado = []
         self._percorrer(self.raiz, [], resultado)
         return resultado
+
+    def categoria_existe(self, caminho):
+        no = self.raiz
+        for categoria in caminho:
+            if categoria not in no.filhos:
+                return False
+            no = no.filhos[categoria]
+        return True
 
     def _percorrer(self, no, caminho_atual, resultado):
         if caminho_atual:
