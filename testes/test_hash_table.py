@@ -16,7 +16,7 @@ def test_remover():
     ht = HashTable()
     ht.inserir("notebook", {"nome": "Dell", "preco": 3000})
     ht.remover("notebook")
-    assert ht.buscar("notebook") is None  # agora retorna None
+    assert ht.buscar("notebook") is None
 
 def test_contem():
     ht = HashTable()
@@ -32,11 +32,11 @@ def test_tamanho():
 
 def test_buscar_inexistente():
     ht = HashTable()
-    assert ht.buscar("inexistente") is None  # retorna None em vez de KeyError
+    assert ht.buscar("inexistente") is None  
 
 def test_remover_inexistente():
     ht = HashTable()
-    ht.remover("inexistente")  # não deve lançar erro
+    ht.remover("inexistente")
 
 def test_listar_todos():
     ht = HashTable()

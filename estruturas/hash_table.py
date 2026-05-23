@@ -1,5 +1,4 @@
 class HashTable:
-    """Pedro 2 – Hash table para armazenar e buscar produtos rapidamente."""
     def __init__(self, capacidade: int = 100):
         self._capacidade = capacidade
         self._tabela = [[] for _ in range(capacidade)]
