@@ -7,7 +7,7 @@ class Pilha:
     def push(self, item: dict) -> None:
 
         if len(self._dados) >= self._capacidade:
-            self._dados.pop(0)          # descarta o mais antigo
+            self._dados.pop(0)          
         self._dados.append(item)
 
     def pop(self) -> dict:
