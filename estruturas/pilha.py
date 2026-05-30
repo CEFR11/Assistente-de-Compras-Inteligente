@@ -1,47 +1,43 @@
 class Pilha:
 
     def __init__(self, capacidade: int = 50):
-        self._dados = []
+        self._dados: list[dict] = []
         self._capacidade = capacidade
 
     def push(self, item: dict) -> None:
-
         if len(self._dados) >= self._capacidade:
-            self._dados.pop(0)          
+            self._dados.pop(0)
         self._dados.append(item)
 
     def pop(self) -> dict:
-
         if self.esta_vazia():
             raise IndexError("pop() em pilha vazia.")
         return self._dados.pop()
 
-    def peek(self):
-
+    def peek(self) -> dict | None:
         if self.esta_vazia():
             return None
         return self._dados[-1]
 
-    def historico(self, n: int = 5) -> list:
-
-        return self._dados[-n:]
-
-    def esta_vazia(self) -> bool:
-        return len(self._dados) == 0
-
-    def tamanho(self) -> int:
-        return len(self._dados)
+    def historico(self, n: int = 5) -> list[dict]:
+        return list(reversed(self._dados[-n:]))
 
     def categorias_recentes(self) -> list[str]:
 
-        vistas = set()
-        resultado = []
+        vistas: set[str] = set()
+        resultado: list[str] = []
         for item in reversed(self._dados):
             cat = item.get("categoria")
             if cat and cat not in vistas:
                 vistas.add(cat)
                 resultado.append(cat)
         return resultado
+
+    def esta_vazia(self) -> bool:
+        return len(self._dados) == 0
+
+    def tamanho(self) -> int:
+        return len(self._dados)
 
     def __repr__(self) -> str:
         if self.esta_vazia():
@@ -61,13 +57,14 @@ class Pilha:
         return "\n".join(linhas)
 
 if __name__ == "__main__":
+
     buscas_parsed = [
         {"original": "celular barato com boa câmera",
-         "categoria": "celular", "preco": "baixo", "atributos": ["câmera"]},
+         "categoria": "celular",  "preco": "baixo", "atributos": ["câmera"]},
         {"original": "fone bluetooth",
-         "categoria": "fone",    "preco": None,    "atributos": []},
+         "categoria": "fone",     "preco": None,    "atributos": []},
         {"original": "notebook gamer até 4000 reais",
-         "categoria": "notebook","preco": "medio", "atributos": []},
+         "categoria": "notebook", "preco": "medio", "atributos": []},
     ]
 
     pilha = Pilha(capacidade=10)
@@ -92,13 +89,13 @@ if __name__ == "__main__":
 
     print("\n[ pop() ] voltando para busca anterior:")
     removida = pilha.pop()
-    print(f"  removido: '{removida['original']}'")
+    print(f"  removido : '{removida['original']}'")
     print(f"  novo topo: '{pilha.peek()['original']}'\n")
 
     print("[ pop() em pilha vazia ]")
-    pilha2 = Pilha()
+    pilha_vazia = Pilha()
     try:
-        pilha2.pop()
+        pilha_vazia.pop()
     except IndexError as e:
         print(f"  IndexError capturado: {e}")
 
