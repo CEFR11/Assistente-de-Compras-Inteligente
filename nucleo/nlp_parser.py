@@ -1,5 +1,4 @@
 class NLPParser:
-    """Módulo compartilhado – interpreta entrada em linguagem natural."""
     CATEGORIAS = {
         'celular':  ['celular', 'smartphone', 'iphone', 'android', 'telefone'],
         'notebook': ['notebook', 'laptop', 'computador', 'pc'],
