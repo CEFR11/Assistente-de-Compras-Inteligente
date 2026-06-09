@@ -1,6 +1,5 @@
-import unicodedata
-
 class NLPParser:
+
     CATEGORIAS = {
         'celular':    ['celular', 'celulares', 'smartphone', 'smartphones', 'iphone', 'android', 'telefone', 'telefones'],
         'notebook':   ['notebook', 'notebooks', 'laptop', 'laptops', 'computador', 'computadores', 'pc'],
@@ -50,9 +49,63 @@ class NLPParser:
         'realme':     ['realme'],
     }
 
+    _MAPA_ACENTOS = {
+        'á': 'a', 'à': 'a', 'ã': 'a', 'â': 'a', 'ä': 'a',
+        'é': 'e', 'è': 'e', 'ê': 'e', 'ë': 'e',
+        'í': 'i', 'ì': 'i', 'î': 'i', 'ï': 'i',
+        'ó': 'o', 'ò': 'o', 'õ': 'o', 'ô': 'o', 'ö': 'o',
+        'ú': 'u', 'ù': 'u', 'û': 'u', 'ü': 'u',
+        'ç': 'c', 'ñ': 'n',
+        'Á': 'a', 'À': 'a', 'Ã': 'a', 'Â': 'a', 'Ä': 'a',
+        'É': 'e', 'È': 'e', 'Ê': 'e', 'Ë': 'e',
+        'Í': 'i', 'Ì': 'i', 'Î': 'i', 'Ï': 'i',
+        'Ó': 'o', 'Ò': 'o', 'Õ': 'o', 'Ô': 'o', 'Ö': 'o',
+        'Ú': 'u', 'Ù': 'u', 'Û': 'u', 'Ü': 'u',
+        'Ç': 'c', 'Ñ': 'n',
+    }
+
     @staticmethod
     def _norm(texto: str) -> str:
-        return unicodedata.normalize('NFD', texto).encode('ascii', 'ignore').decode('ascii').lower()
+        resultado = texto.lower()
+        for acento, simples in NLPParser._MAPA_ACENTOS.items():
+            resultado = resultado.replace(acento, simples)
+        return resultado
+
+    @staticmethod
+    def _levenshtein(s1: str, s2: str) -> int:
+        m, n = len(s1), len(s2)
+        if abs(m - n) > 3:
+            return abs(m - n)
+        dp = [[0] * (n + 1) for _ in range(m + 1)]
+        for i in range(m + 1):
+            dp[i][0] = i
+        for j in range(n + 1):
+            dp[0][j] = j
+        for i in range(1, m + 1):
+            for j in range(1, n + 1):
+                custo = 0 if s1[i - 1] == s2[j - 1] else 1
+                dp[i][j] = min(
+                    dp[i - 1][j] + 1,
+                    dp[i][j - 1] + 1,
+                    dp[i - 1][j - 1] + custo,
+                )
+                if i > 1 and j > 1 and s1[i-1] == s2[j-2] and s1[i-2] == s2[j-1]:
+                    dp[i][j] = min(dp[i][j], dp[i-2][j-2] + 1)
+        return dp[m][n]
+
+    def _tem_match(self, texto_norm: str, palavras: list) -> bool:
+        if any(p in texto_norm for p in palavras):
+            return True
+        for w in texto_norm.split():
+            if len(w) < 3:
+                continue
+            for kw in palavras:
+                if len(kw) < 3:
+                    continue
+                limite = 1 if len(kw) <= 5 else 2
+                if self._levenshtein(w, kw) <= limite:
+                    return True
+        return False
 
     def parsear(self, texto: str) -> dict:
         texto_norm = self._norm(texto)
@@ -65,20 +118,20 @@ class NLPParser:
             'atributos': []
         }
         for tipo, palavras in self.TIPOS.items():
-            if any(p in texto_norm for p in palavras):
+            if self._tem_match(texto_norm, palavras):
                 resultado['tipo'] = tipo
                 break
         for cat, palavras in self.CATEGORIAS.items():
-            if any(p in texto_norm for p in palavras):
+            if self._tem_match(texto_norm, palavras):
                 resultado['categoria'] = cat
                 break
         for nivel, palavras in self.PRECOS.items():
-            if any(p in texto_norm for p in palavras):
+            if self._tem_match(texto_norm, palavras):
                 resultado['preco'] = nivel
                 break
         for marca, palavras in self.MARCAS.items():
-            if any(p in texto_norm for p in palavras):
+            if self._tem_match(texto_norm, palavras):
                 resultado['marca'] = marca
                 break
-        resultado['atributos'] = [a for a in self.ATRIBUTOS if a in texto_norm]
+        resultado['atributos'] = [a for a in self.ATRIBUTOS if self._tem_match(texto_norm, [a])]
         return resultado

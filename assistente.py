@@ -49,6 +49,13 @@ class AssistenteDeCompras:
         if marca:
             por_categoria = [p for p in por_categoria if p.get('marca') == marca]
 
+        atributos = req.get('atributos', [])
+        if atributos:
+            filtrados = [p for p in por_categoria
+                         if any(a in p.get('atributos', []) for a in atributos)]
+            if filtrados:
+                por_categoria = filtrados
+
         ids_encontrados = [p['id'] for p in por_categoria]
         recomendacoes = []
 
