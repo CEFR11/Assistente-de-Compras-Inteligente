@@ -288,6 +288,29 @@
   }
 
   .empty-icon { font-size: 2rem; margin-bottom: 10px; }
+
+  .sugestoes-label {
+    font-size: .78rem;
+    color: var(--muted);
+    margin: 12px 0 8px;
+  }
+
+  /* botão voltar */
+  #btn-voltar {
+    display: none;
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 8px 16px;
+    color: var(--muted);
+    font-family: 'Outfit', sans-serif;
+    font-size: .85rem;
+    cursor: pointer;
+    transition: color .15s, border-color .15s;
+    margin-bottom: 16px;
+    align-self: flex-start;
+  }
+  #btn-voltar:hover { color: var(--text); border-color: #6c63ff60; }
 </style>
 </head>
 <body>
@@ -305,11 +328,17 @@
   </div>
 
   <div class="chips">
-    <div class="chip" onclick="fill('celular barato')">celular barato</div>
+    <div class="chip" onclick="fill('celular barato com boa camera')">celular barato</div>
     <div class="chip" onclick="fill('notebook para trabalho')">notebook trabalho</div>
     <div class="chip" onclick="fill('fone premium')">fone premium</div>
     <div class="chip" onclick="fill('tv grande barata')">tv grande</div>
+    <div class="chip" onclick="fill('tablet para estudar')">tablet</div>
+    <div class="chip" onclick="fill('smartwatch barato')">smartwatch</div>
+    <div class="chip" onclick="fill('console videogame')">console</div>
+    <div class="chip" onclick="fill('monitor para pc')">monitor</div>
   </div>
+
+  <button id="btn-voltar" onclick="voltar()">← Voltar</button>
 
   <div id="resultados">
     <div id="mensagem">
@@ -321,8 +350,26 @@
 </div>
 
 <script>
-  const icones = { celular:'📱', notebook:'💻', fone:'🎧', tv:'📺' };
+  const icones = { celular:'📱', notebook:'💻', fone:'🎧', tv:'📺', tablet:'📲', smartwatch:'⌚', console:'🎮', monitor:'🖥️' };
   const labelPreco = { baixo:'Econômico', medio:'Médio', alto:'Premium' };
+
+  function renderCards(lista) {
+    return lista.map(p => `
+      <div class="card">
+        <div class="card-left">
+          <div class="card-icon">${icones[p.categoria] || '📦'}</div>
+          <div>
+            <div class="card-nome">${p.nome}</div>
+            <div class="card-meta">
+              <span class="cat">${p.categoria}</span>
+              <span class="tag tag-${p.preco}">${labelPreco[p.preco]}</span>
+            </div>
+          </div>
+        </div>
+        <div class="card-preco">R$ ${p.valor.toFixed(2)}</div>
+      </div>
+    `).join('');
+  }
 
   function buscar() {
     const q = document.getElementById('input').value.trim();
@@ -334,33 +381,78 @@
     fetch(`http://localhost:8000/buscar?q=${encodeURIComponent(q)}`)
       .then(r => r.json())
       .then(dados => {
-        if (!dados.length) {
-          div.innerHTML = '<div id="mensagem"><div class="empty-icon">😕</div>Nenhum produto encontrado.</div>';
+        const resultados    = dados.resultados    || [];
+        const recomendacoes = dados.recomendacoes || [];
+
+        if (!resultados.length && !recomendacoes.length) {
+          const cats = ['celular','notebook','tv','fone','tablet','smartwatch','console','monitor'];
+          div.innerHTML = `
+            <div id="mensagem">
+              <div class="empty-icon">😕</div>
+              Nenhum produto encontrado para essa busca.
+              <div class="sugestoes-label">Tente buscar por:</div>
+              <div class="chips" style="justify-content:center">
+                ${cats.map(c => `<div class="chip" onclick="fill('${c}')">${c}</div>`).join('')}
+              </div>
+            </div>`;
           return;
         }
-        div.innerHTML = `
-          <div class="result-header">
-            <strong>${dados.length} resultado${dados.length > 1 ? 's' : ''}</strong>
-            <span>ordenado por relevância</span>
-          </div>
-          ${dados.map(p => `
-            <div class="card">
-              <div class="card-left">
-                <div class="card-icon">${icones[p.categoria] || '📦'}</div>
-                <div>
-                  <div class="card-nome">${p.nome}</div>
-                  <div class="card-meta">
-                    <span class="cat">${p.categoria}</span>
-                    <span class="tag tag-${p.preco}">${labelPreco[p.preco]}</span>
-                  </div>
-                </div>
-              </div>
-              <div class="card-preco">R$ ${p.valor.toFixed(2)}</div>
+
+        let html = '';
+
+        if (resultados.length) {
+          html += `
+            <div class="result-header">
+              <strong>${resultados.length} resultado${resultados.length > 1 ? 's' : ''}</strong>
+              <span>ordenado por relevância</span>
             </div>
-          `).join('')}`;
+            ${renderCards(resultados)}`;
+        }
+
+        if (recomendacoes.length) {
+          html += `
+            <div class="result-header" style="margin-top:24px">
+              <strong>Recomendados</strong>
+              <span>baseado no seu histórico e relações</span>
+            </div>
+            ${renderCards(recomendacoes)}`;
+        }
+
+        div.innerHTML = html;
+        document.getElementById('btn-voltar').style.display = 'block';
       })
       .catch(() => {
         div.innerHTML = '<div id="mensagem">Erro ao conectar com o servidor.</div>';
+      });
+  }
+
+  function voltar() {
+    fetch('http://localhost:8000/voltar')
+      .then(r => r.json())
+      .then(dados => {
+        if (dados.vazio || (!dados.resultados.length && !dados.recomendacoes.length)) {
+          document.getElementById('btn-voltar').style.display = 'none';
+          return;
+        }
+        const div = document.getElementById('resultados');
+        let html = '';
+        if (dados.resultados.length) {
+          html += `
+            <div class="result-header">
+              <strong>${dados.resultados.length} resultado${dados.resultados.length > 1 ? 's' : ''}</strong>
+              <span>busca anterior</span>
+            </div>
+            ${renderCards(dados.resultados)}`;
+        }
+        if (dados.recomendacoes.length) {
+          html += `
+            <div class="result-header" style="margin-top:24px">
+              <strong>Recomendados</strong>
+              <span>baseado no seu histórico e relações</span>
+            </div>
+            ${renderCards(dados.recomendacoes)}`;
+        }
+        div.innerHTML = html;
       });
   }
 

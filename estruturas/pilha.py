@@ -1,12 +1,11 @@
+from collections import deque
+
 class Pilha:
 
-    def init(self, capacidade: int = 50):
-        self._dados = []
-        self._capacidade = capacidade
+    def __init__(self, capacidade: int = 50):
+        self._dados = deque(maxlen=capacidade)
 
     def push(self, item):
-        if len(self._dados) >= self._capacidade:
-            self._dados.pop(0)
         self._dados.append(item)
 
     def pop(self):
@@ -28,5 +27,14 @@ class Pilha:
     def esta_vazia(self) -> bool:
         return len(self._dados) == 0
 
+    def tamanho(self) -> int:
+        return len(self._dados)
+
     def historico(self, n: int = 5) -> list:
-        return self._dados[-n:]
+        return list(self._dados)[-n:]
+
+    def categorias_recentes(self, n: int = 5) -> list:
+        return [h.get('categoria') for h in list(self._dados)[-n:] if h.get('categoria')]
+
+    def __repr__(self):
+        return f'Pilha({list(self._dados)})'
