@@ -35,3 +35,12 @@ class HashTable:
 
     def listar_todos(self) -> list:
         return [v for bucket in self._tabela for _, v in bucket]
+
+    def listar_chaves(self) -> list:
+        return [k for bucket in self._tabela for k, _ in bucket]
+
+    def listar_itens(self) -> list:
+        return [(k, v) for bucket in self._tabela for k, v in bucket]
+
+    def __repr__(self):
+        return f'HashTable({dict(self.listar_itens())})'

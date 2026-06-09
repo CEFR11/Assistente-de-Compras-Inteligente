@@ -1,6 +1,8 @@
+from collections import deque
+
 class FilaSimples:
     def __init__(self):
-        self._fila = []
+        self._fila = deque()
 
     def enqueue(self, requisicao: str):
         self._fila.append(requisicao)
@@ -8,7 +10,7 @@ class FilaSimples:
     def dequeue(self) -> str:
         if self.esta_vazia():
             raise IndexError('Fila vazia')
-        return self._fila.pop(0)
+        return self._fila.popleft()
 
     def esta_vazia(self) -> bool:
         return len(self._fila) == 0
@@ -17,4 +19,4 @@ class FilaSimples:
         return len(self._fila)
 
     def __repr__(self):
-        return f'FilaSimples({self._fila})'
+        return f'FilaSimples({list(self._fila)})'
